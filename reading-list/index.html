@@ -16,6 +16,16 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&amp;family=Bricolage+Grotesque:opsz,wght@12..96,400..800&amp;family=DM+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../site.css">
+<style>
+/* back to top: kept in the page so a cached site.css can't hide it */
+.totop { position: fixed; right: max(16px, env(safe-area-inset-right)); bottom: max(16px, env(safe-area-inset-bottom));
+  padding: 10px 16px; border-radius: 999px; background: var(--ink); color: var(--paper); font: 500 14px/1 var(--mono);
+  text-decoration: none; box-shadow: 0 4px 14px rgba(0,0,0,.18); opacity: 0; pointer-events: none; transform: translateY(8px);
+  transition: opacity .2s, transform .2s; }
+.totop.show { opacity: 1; pointer-events: auto; transform: none; }
+.totop:hover, .totop:focus-visible { color: var(--paper); background: var(--moss); }
+@media (prefers-reduced-motion: reduce) { .totop { transition: none; } }
+</style>
 </head>
 <body>
 <header class="top" id="top"><a href="../">← Who's holding what now?</a></header>

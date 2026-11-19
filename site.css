@@ -73,12 +73,3 @@ a.door:hover { border-color: var(--moss); color: var(--ink); transform: translat
 .prose td:first-child strong { color: var(--moss); }
 .prose td a { font-weight: 700; text-decoration: none; }
 @media (max-width: 640px) { .prose table { font-size: 15px; } .prose th, .prose td { padding: 6px 6px; } }
-
-/* back to top: appears once you've scrolled */
-.totop { position: fixed; right: max(16px, env(safe-area-inset-right)); bottom: max(16px, env(safe-area-inset-bottom));
-  padding: 10px 16px; border-radius: 999px; background: var(--ink); color: var(--paper); font: 500 14px/1 var(--mono);
-  text-decoration: none; box-shadow: 0 4px 14px rgba(0,0,0,.18); opacity: 0; pointer-events: none; transform: translateY(8px);
-  transition: opacity .2s, transform .2s; }
-.totop.show { opacity: 1; pointer-events: auto; transform: none; }
-.totop:hover, .totop:focus-visible { color: var(--paper); background: var(--moss); }
-@media (prefers-reduced-motion: reduce) { .totop { transition: none; } }
