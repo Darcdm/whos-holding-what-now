@@ -7,7 +7,7 @@
 - [Slides](https://darcdm.github.io/whos-holding-what-now/slides/) with speaker notes (tap or swipe; the Notes button shows the notes)
 - [Slides as a PDF](https://darcdm.github.io/whos-holding-what-now/slides/deck.pdf)
 - [Reading list](https://darcdm.github.io/whos-holding-what-now/reading-list/)
-- The pad toolkit: coming soon
+- [The pad toolkit](https://darcdm.github.io/whos-holding-what-now/toolkit/)
 
 All artwork is public domain; credits are in the slide notes.
 
@@ -18,7 +18,7 @@ All artwork is public domain; credits are in the slide notes.
 The source files live in my notes, not here. To publish changes:
 
 ```
-python build.py          # rebuild slides, images, reading list, PDF and offline cache
+python build.py          # rebuild slides, images, reading list, toolkit, PDF and offline cache
 git add -A
 git commit -m "Update slides"
 git push

@@ -18,7 +18,7 @@
 <link rel="stylesheet" href="../site.css">
 </head>
 <body>
-<header class="top"><a href="../">← Who's holding what now?</a></header>
+<header class="top" id="top"><a href="../">← Who's holding what now?</a></header>
 <main class="prose">
 <h1>Who's holding what now? Reading list</h1>
 <blockquote><p>From the talk <em>Who's holding what now? New tools, shifting burdens and learning to keep up</em>, MoT London, Nov 2026.</p><p>Start with the recommended reads. The further reading is grouped so that pieces that disagree sit side by side. Read them together and make up your own mind.</p></blockquote>
@@ -100,6 +100,21 @@
 </ul>
 </main>
 <footer class="foot"><a href="../">Home</a> · <a href="../slides/">Slides</a></footer>
+<a class="totop" href="#top" aria-label="Back to top">&uarr; Top</a>
+<script>
+(function () {
+  var b = document.querySelector('.totop');
+  function check() { b.classList.toggle('show', window.scrollY > 600); }
+  window.addEventListener('scroll', check, { passive: true }); check();
+  b.addEventListener('click', function (e) {
+    e.preventDefault();
+    var still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    window.scrollTo({ top: 0, behavior: still ? 'auto' : 'smooth' });
+    history.replaceState(null, '', location.pathname);
+    document.getElementById('top').querySelector('a').focus({ preventScroll: true });
+  });
+})();
+</script>
 <script>
 if ('serviceWorker' in navigator && location.protocol.startsWith('http'))
   navigator.serviceWorker.register('../sw.js').catch(function () {});

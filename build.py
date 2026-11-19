@@ -12,6 +12,7 @@ What it does:
   - copies only the images the deck uses into slides/images/
   - turns the shareable reading list (11) into reading-list/index.html,
     dropping the Obsidian properties block
+  - turns the pad toolkit (13) into toolkit/index.html the same way
   - prints the deck to slides/deck.pdf with Chrome or Edge, if one is found
   - writes sw.js, the offline cache, with a fresh version so phones pick up changes
 No third-party packages needed.
@@ -24,6 +25,7 @@ TALK = Path(r"C:\Users\Luke\Desktop\Write\CoreVault\QA\Me\Talks\MotLondonNov26")
 DECK = TALK / "Mockups" / "G_deck.html"
 IMAGES = TALK / "Images"
 READING = TALK / "11_Reading list - Shareable.md"
+TOOLKIT = TALK / "13_Pad Toolkit v2 - Review.md"
 # -----------------------------------------------------------------------------
 
 SITE = Path(__file__).resolve().parent
@@ -79,9 +81,23 @@ def inline(t):
     t = re.sub(r"\*([^*]+)\*", r"<em>\1</em>", t)
     return t
 
-def markdown(md):
+def slug(t):
+    return re.sub(r"[^a-z0-9]+", "-", re.sub(r"<[^>]+>", "", t).lower()).strip("-")
+
+def markdown(md, ids=False):
     md = re.sub(r"\A---\n.*?\n---\n", "", md, flags=re.S)  # Obsidian properties
-    out, lst, item, quote = [], None, [], []
+    out, lst, item, quote, table = [], None, [], [], []
+
+    def close_table():
+        nonlocal table
+        if table:
+            rows = [[c.strip() for c in r.strip().strip("|").split("|")] for r in table
+                    if not re.match(r"^\|[\s|:-]+\|$", r.strip())]
+            head, body = rows[0], rows[1:]
+            out.append('<div class="table"><table><thead><tr>' + "".join(f"<th>{inline(c)}</th>" for c in head) + "</tr></thead><tbody>")
+            out.extend("<tr>" + "".join(f"<td>{inline(c)}</td>" for c in r) + "</tr>" for r in body)
+            out.append("</tbody></table></div>")
+            table = []
 
     def close_item():
         nonlocal item
@@ -106,6 +122,9 @@ def markdown(md):
     for raw in md.splitlines():
         line = raw.rstrip()
         m_num, m_bul = re.match(r"^\d+\.\s+(.*)", line), re.match(r"^-\s+(.*)", line)
+        if line.startswith("|"):
+            close_list(); close_quote(); table.append(line); continue
+        close_table()
         if not line.strip():
             close_quote()
             continue
@@ -124,22 +143,40 @@ def markdown(md):
         if line.strip() == "---":
             out.append("<hr>")
         elif m := re.match(r"^(#{1,4})\s+(.*)", line):
-            n = len(m.group(1)); out.append(f"<h{n}>{inline(m.group(2))}</h{n}>")
+            n, h = len(m.group(1)), inline(m.group(2))
+            anchor = f' id="{slug(h)}"' if ids and n > 1 else ""
+            out.append(f"<h{n}{anchor}>{h}</h{n}>")
         else:
             out.append(f"<p>{inline(line)}</p>")
-    close_list(); close_quote()
-    return "\n".join(out)
+    close_list(); close_quote(); close_table()
+    html_out = "\n".join(out)
+    if ids:  # table cells that name a heading on the page become jump links
+        anchors = set(re.findall(r' id="([^"]+)"', html_out))
+        html_out = re.sub(r"<td>([^<]+)</td>",
+                          lambda m: f'<td><a href="#{slug(m.group(1))}">{m.group(1)}</a></td>' if slug(m.group(1)) in anchors else m.group(0),
+                          html_out)
+    return html_out
+
+
+def build_page(src, folder, title, body_class="", ids=False):
+    body = markdown(src.read_text(encoding="utf-8"), ids=ids)
+    tpl = (SITE / "templates" / "page.html").read_text(encoding="utf-8")
+    page = tpl.replace("{{title}}", f"{title} · Who's holding what now?").replace("{{root}}", "../").replace("{{body}}", body)
+    if body_class:
+        page = page.replace("<body>", f'<body class="{body_class}">', 1)
+    page = page.replace("</title>", "</title>\n" + HEAD_EXTRAS.format(root="../"), 1)
+    page = page.replace("</body>", SW_REGISTER.format(root="../") + "</body>", 1)
+    d = SITE / folder; d.mkdir(exist_ok=True)
+    (d / "index.html").write_text(page, encoding="utf-8", newline="\n")
+    print(f"{folder}: done")
 
 
 def build_reading_list():
-    body = markdown(READING.read_text(encoding="utf-8"))
-    tpl = (SITE / "templates" / "page.html").read_text(encoding="utf-8")
-    page = tpl.replace("{{title}}", "Reading list · Who's holding what now?").replace("{{root}}", "../").replace("{{body}}", body)
-    page = page.replace("</title>", "</title>\n" + HEAD_EXTRAS.format(root="../"), 1)
-    page = page.replace("</body>", SW_REGISTER.format(root="../") + "</body>", 1)
-    d = SITE / "reading-list"; d.mkdir(exist_ok=True)
-    (d / "index.html").write_text(page, encoding="utf-8", newline="\n")
-    print("reading list: done")
+    build_page(READING, "reading-list", "Reading list")
+
+
+def build_toolkit():
+    build_page(TOOLKIT, "toolkit", "The pad toolkit", body_class="toolkit", ids=True)
 
 
 def build_pdf():
@@ -156,7 +193,8 @@ def build_pdf():
 
 def build_sw(images):
     files = ["./", "index.html", "site.css", "manifest.webmanifest", "icons/icon-192.png", "icons/apple-touch-icon.png",
-             "slides/", "slides/index.html", "reading-list/", "reading-list/index.html"] + images
+             "slides/", "slides/index.html", "reading-list/", "reading-list/index.html",
+             "toolkit/", "toolkit/index.html"] + images
     h = hashlib.sha1()
     for f in files:
         p = SITE / (f + "index.html" if f.endswith("/") else f)
@@ -171,6 +209,7 @@ def build_sw(images):
 if __name__ == "__main__":
     imgs = build_deck()
     build_reading_list()
+    build_toolkit()
     if "--no-pdf" not in sys.argv:
         build_pdf()
     build_sw(imgs)

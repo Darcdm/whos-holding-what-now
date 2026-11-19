@@ -9,9 +9,24 @@
 <link rel="stylesheet" href="{{root}}site.css">
 </head>
 <body>
-<header class="top"><a href="{{root}}">← Who's holding what now?</a></header>
+<header class="top" id="top"><a href="{{root}}">← Who's holding what now?</a></header>
 <main class="prose">
 {{body}}
 </main>
 <footer class="foot"><a href="{{root}}">Home</a> · <a href="{{root}}slides/">Slides</a></footer>
+<a class="totop" href="#top" aria-label="Back to top">&uarr; Top</a>
+<script>
+(function () {
+  var b = document.querySelector('.totop');
+  function check() { b.classList.toggle('show', window.scrollY > 600); }
+  window.addEventListener('scroll', check, { passive: true }); check();
+  b.addEventListener('click', function (e) {
+    e.preventDefault();
+    var still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    window.scrollTo({ top: 0, behavior: still ? 'auto' : 'smooth' });
+    history.replaceState(null, '', location.pathname);
+    document.getElementById('top').querySelector('a').focus({ preventScroll: true });
+  });
+})();
+</script>
 </body></html>
